@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd"> <configuration>
+<!--<1.properties>标签中的resource属性是配置在类路径下的配置文件
+url是配置磁盘或网络上的配置-->
+<!--    <properties resource="druid.properties" >-->
+<!--        <property name="" value=""/>-->
+<!--    </properties>-->
+<!--value值的读取顺序:首先读取properties标签中property指定的属性值
+如果引入的外部文件中指定的key与第一步中一致，则覆盖第一步中的值
+最后如果都加载不到则使用当前property标签中指定的-->
+    <settings>
+<!--2.开启驼峰命名自动映射功能-->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+<!--   开启延迟加载-->
+        <setting name="lazyLoadingEnabled" value="true"/>
+<!--开启按需加载-->
+        <setting name="aggressiveLazyLoading" value="false"/>
+    </settings>
+<!--3.typeAliases-->
+<!--    <typeAliases>-->
+<!--子标签typeAlias给类指定别名
+ type指定要起别名的全类名-->
+<!--        <typeAlias type="com.mybatis.entities.Employee" alias="Employee"></typeAlias>-->
+<!--typeAliases的第二个子标签package
+通过指定包名给包下的所有类起别名-->
+<!--        <package name="com.mybatis.entities"/>-->
+<!--    </typeAliases>-->
+<!--4.配置类处理器-->
+<!--    <typeHandlers>-->
+<!--        <typeHandler handler="配置类处理器的全类名"></typeHandler>-->
+<!--    </typeHandlers>-->
+<!--&lt;!&ndash;6.environments标签中-->
+<!--default属性指定当前使用的是哪个环境值是environment id的属性值-->
+<!--每个环境中的十五管理器和数据源必须要指定&ndash;&gt;-->
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+        <dataSource type="POOLED">
+            <property name="driver" value="com.mysql.jdbc.Driver"/>
+            <property name="url" value="jdbc:mysql://localhost:3306/mybatis"/>
+            <property name="username" value="root"/>
+            <property name="password" value="root"/>
+        </dataSource>
+        </environment>
+    </environments>
+<!--<mappers>注册Mapper映射文件(sql映射文件)-->
+    <mappers>
+<!--子标签mapper中resource属性是指定类路径下的sql映射文件的路径
+使用class属性注册sql映射文件必须与mapper接口同包同名
+或者在mapper接口的方法上添加注解-->
+        <mapper resource="com/mybatis/mapper/EmployeeMapper.xml"/>
+    <mapper resource="com/mybatis/mapper/DepartmentMapper.xml"></mapper>
+    </mappers>
+
+</configuration>

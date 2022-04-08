@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace属性：该属性值设置为Mapper接口的全类名-->
+<mapper namespace="com.mybatis.mapper.EmployeeMapper">
+<!--id属性设置为Mapper 接口的方法名
+resultType设置返回值的类型
+parameterType参数的类型-->
+<!--参数处理
+单个参数：mybatis不做任何处理填，#{key}充占位符的key可以任意指定
+多个参数：mybatis获取到会转换成一个map，填充占位符是的key是arg0,arg1...或者是param1,param2....
+如果入参前面加了@param注解，那么填充占位符时的ｋｅｙ是arg0,arg1...或者是param1,param2....
+第三种情况如果传入的参数可以封装成一个pojo对象，那么可以直接可以传入pojo,此时填充占位符的
+key是pojo对象的属性名
+第四种传入的参数是map则map中的key必须和#{key}中的key必须完全相同-->
+    <select id="getEmployeeById" parameterType="int" resultType="com.mybatis.entities.Employee">
+ select id,last_name,email,salary,dept_id
+  from employees
+  where id = #{id}
+    </select>
+<!--多个参数的情况-->
+<select id="getEmployeeByLastnameandemail"  resultType="com.mybatis.entities.Employee">
+    select id,last_name,email,salary,dept_id
+    from employees
+    where last_name=#{lastname} and email=#{email}
+</select>
+    <insert id="addEmployee" >
+        insert into employees(last_name,email,salary,dept_id)
+        values (#{lastname},#{email},#{salary})
+    </insert>
+    <select id="getEmployeeByMap" resultType="com.mybatis.entities.Employee">
+        select id,last_name,email,salary,dept_id
+    from employees
+    where last_name=#{ls} and email=#{em}
+    </select>
+<!--当mapper的返回值是list时，resultType的值指定的泛型的全类名-->
+    <select id="getEmployees" resultType="com.mybatis.entities.Employee">
+         select id,last_name,email,salary,dept_id
+          from  employees
+    </select>
+    <!--查询一个对象时当mapper的返回值是map时，resultType的值指定map-->
+    <select id="getMapEmployees" resultType="map">
+         select id,last_name,email,salary,dept_id
+          from  employees
+          where id = #{id}
+    </select>
+    <!--查询多个对象时当mapper的返回值是map时，resultType的值指定map-->
+    <select id="getMapAllEmployees" resultType="map">
+         select id,last_name,email,salary,dept_id
+          from  employees
+    </select>
+<!--resultMap属性：指定resultMap标签中id的属性值-->
+    <select id="getEmployeeContainDept"  resultMap="myEmp">
+        SELECT employees.*,departments.id ,departments.`name`  FROM
+            employees,departments
+            WHERe
+            employees.dept_id=departments.id
+            AND employees.id=#{id}
+    </select>
+<!--resultMap实现高级结果集的映射 id属性是指定一个唯一标识以便被引用-->
+    <resultMap id="myEmp" type="com.mybatis.entities.Employee">
+<!--映射主键
+column属性：指定数据库中的字段名
+property属性：指定pojo中的属性名
+-->
+        <id column="id" property="id"></id>
+<!--映射其他键-->
+        <result column="last_name" property="lastname"></result>
+        <result column="email" property="email"></result>
+        <result column="salary" property="salary"></result>
+<!--通过级联方式映射部门的信息
+<association property:指定属性名
+javaType指定property中标签中属性的类型的全类名-->
+        <association property="dept" javaType="com.mybatis.entities.Department">
+            <id column="id" property="id"></id>
+            <!--映射其他键-->
+            <result column="name" property="name"></result>
+        </association>
+    </resultMap>
+<!--分步查询
+1.根据员工的id查询出员工信息
+2，根据员工的部门id和查询出部门信息
+将部门信息设置到员工中-->
+    <select id="getEmployeeContainDeptbystep"  resultMap="myemp2">
+         select id,last_name,email,salary,dept_id
+          from  employees
+          where id = #{id}
+    </select>
+    <resultMap id="myemp2" type="com.mybatis.entities.Employee">
+        <id column="id" property="id"></id>
+        <result column="last_name" property="lastname"></result>
+        <result column="email" property="email"></result>
+        <result column="salary" property="salary"></result>
+        <!--property属性是指定属性的名字
+select属性的是指定调用哪个接口的那个方法查询部门信息
+column属性是调用上述select属性指定的方法时要传入的参数
+fetchType="eager"不使用延迟加载
+值为lazy则使用延迟加载-->
+        <association property="dept" select="com.mybatis.mapper.DepartmentMapper.getDepartmentMapperByid" column="dept_id"
+        fetchType="eager">
+
+        </association>
+    </resultMap>
+    <select id="getEmployeesBydept" resultType="com.mybatis.entities.Employee">
+        select id,last_name,email,salary,dept_id
+          from  employees
+          where dept_id=#{id}
+    </select>
+<!--if标签的使用
+问题一当第一个条件为null时条件前面会出出现一个and或or
+使用<where>
+问题二每个条件后面有and或or时当最后一个不满足时sql会包异常
+使用trim标签
+prefix=添加前缀
+suffixOverrides=去掉后缀
+suffix=添加后缀
+prefixOverrides=去掉前缀-->
+    <select id="getEmployeeContitionIf" resultType="com.mybatis.entities.Employee">
+        select id,last_name, email,salary
+        from employees
+        <trim prefix="where " suffixOverrides="and" >
+        <if test="id !=null">
+          id=#{id}  and
+        </if>
+        <if test="lastname!=null&amp;&amp;lastname !=&quot;&quot;">
+             last_name=#{lastname}  and
+        </if>
+        <if test="email !=null and email.trim()!=''">
+            email=#{email} and
+        </if>
+        <if test="salary !=null ">
+            salary=#{salary}
+        </if>
+    </trim>
+
+    </select>
+</mapper>
+

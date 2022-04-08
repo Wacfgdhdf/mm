@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace属性：该属性值设置为Mapper接口的全类名-->
+<mapper namespace="com.mybatis.mapper.DepartmentMapper">
+    <!--id属性设置为Mapper 接口的方法名
+    resultType设置返回值的类型
+    parameterType参数的类型-->
+    <!--参数处理
+    单个参数：mybatis不做任何处理填，#{key}充占位符的key可以任意指定
+    多个参数：mybatis获取到会转换成一个map，填充占位符是的key是arg0,arg1...或者是param1,param2....
+    如果入参前面加了@param注解，那么填充占位符时的ｋｅｙ是arg0,arg1...或者是param1,param2....
+    第三种情况如果传入的参数可以封装成一个pojo对象，那么可以直接可以传入pojo,此时填充占位符的
+    key是pojo对象的属性名
+    第四种传入的参数是map则map中的key必须和#{key}中的key必须完全相同-->
+
+    <select id="getDepartmentMapperByid"  resultType="com.mybatis.entities.Department" >
+          select id,name
+          from  departments
+          where id = #{id}
+    </select>
+    <select id="getDepartmentContainEmps" resultMap="myDept">
+      select d.id,d.name ,e.* from departments d,employees e
+where d.id=e.dept_id and d.id=#{id}
+    </select>
+<resultMap id="myDept" type="com.mybatis.entities.Department">
+     <id column="id" property="id"></id>
+     <result column="name" property="name"></result>
+<!--ofType设置泛型类型的全类名-->
+    <collection property="employeeList" ofType="com.mybatis.entities.Employee">
+        <id column="id" property="id"></id>
+        <result column="last_name" property="lastname"></result>
+        <result column="email" property="email"></result>
+        <result column="salary" property="salary"></result>
+    </collection>
+</resultMap>
+<!--分部查询
+根据部门id查询部门信息
+根据员工的外键的部门id查询该部门下的所有的员工信息
+将所有的员工设置到部门中-->
+    <select id="getDepartmentContainEmpsBystep" resultMap="mydept">
+        select id,name from departments
+        where id = #{id}
+    </select>
+    <resultMap id="mydept" type="com.mybatis.entities.Department">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <collection property="employeeList" select="com.mybatis.mapper.EmployeeMapper.getEmployeesBydept" column="id">
+        </collection>
+    </resultMap>
+</mapper>
+
